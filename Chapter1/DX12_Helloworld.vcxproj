@@ -28,7 +28,7 @@
     <VCProjectVersion>16.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
     <ProjectGuid>{8c7cf7c3-7386-478f-8022-496c4599dcbb}</ProjectGuid>
-    <RootNamespace>VEngineCompute</RootNamespace>
+    <RootNamespace>DX12_Helloworld</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
