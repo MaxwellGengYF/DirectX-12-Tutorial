@@ -19,6 +19,7 @@
     <ClInclude Include="src\Resource\Buffer.h" />
     <ClInclude Include="src\Resource\BufferView.h" />
     <ClInclude Include="src\Resource\DefaultBuffer.h" />
+    <ClInclude Include="src\Resource\Mesh.h" />
     <ClInclude Include="src\Resource\ReadbackBuffer.h" />
     <ClInclude Include="src\Resource\Resource.h" />
     <ClInclude Include="src\Resource\UploadBuffer.h" />
@@ -33,6 +34,7 @@
     <ClCompile Include="src\Main.cpp" />
     <ClCompile Include="src\Resource\Buffer.cpp" />
     <ClCompile Include="src\Resource\DefaultBuffer.cpp" />
+    <ClCompile Include="src\Resource\Mesh.cpp" />
     <ClCompile Include="src\Resource\ReadbackBuffer.cpp" />
     <ClCompile Include="src\Resource\UploadBuffer.cpp" />
     <ClCompile Include="src\Utility\ReflactableStruct.cpp" />

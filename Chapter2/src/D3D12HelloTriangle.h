@@ -12,6 +12,9 @@
 #pragma once
 
 #include "DXSample.h"
+#include <Resource/Mesh.h>
+#include <DXRuntime/Device.h>
+#include <Resource/UploadBuffer.h>
 
 using namespace DirectX;
 // Note that while ComPtr is used to manage the lifetime of resources on the CPU,
@@ -31,16 +34,15 @@ public:
 private:
 	static const uint32_t FrameCount = 2;
 
-	struct Vertex {
-		XMFLOAT3 position;
-		XMFLOAT4 color;
+	struct Vertex : public reflection::Struct {
+		reflection::Var<XMFLOAT3> position = "POSITION";
+		reflection::Var<XMFLOAT4> color = "COLOR";
 	};
-
+	std::unique_ptr<Device> device;
 	// Pipeline objects.
 	CD3DX12_VIEWPORT m_viewport;
 	CD3DX12_RECT m_scissorRect;
 	ComPtr<IDXGISwapChain3> m_swapChain;
-	ComPtr<ID3D12Device> m_device;
 	ComPtr<ID3D12Resource> m_renderTargets[FrameCount];
 	ComPtr<ID3D12CommandAllocator> m_commandAllocator;
 	ComPtr<ID3D12CommandQueue> m_commandQueue;
@@ -51,9 +53,7 @@ private:
 	uint32_t m_rtvDescriptorSize;
 
 	// App resources.
-	ComPtr<ID3D12Resource> m_vertexBuffer;
-	D3D12_VERTEX_BUFFER_VIEW m_vertexBufferView;
-
+	std::unique_ptr<Mesh> triangleMesh;
 	// Synchronization objects.
 	uint32_t m_frameIndex;
 	HANDLE m_fenceEvent;

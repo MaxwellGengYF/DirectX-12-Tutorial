@@ -80,9 +80,8 @@ void Struct::GetMeshLayout(uint slot, std::vector<D3D12_INPUT_ELEMENT_DESC>& res
 	};
 	uint offset = 0;
 	for (size_t i = 0; i < variables.size(); ++i) {
-		auto& result = resultVector[i];
+		auto& result = resultVector.emplace_back();
 		auto& var = variables[i];
-		offset += var.GetSize();
 		result = {var.semantic.c_str(),
 				  uint(var.semanticIndex),
 				  getFormat(var),
@@ -90,6 +89,7 @@ void Struct::GetMeshLayout(uint slot, std::vector<D3D12_INPUT_ELEMENT_DESC>& res
 				  offset,
 				  D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA,
 				  uint(0)};
+		offset += var.GetSize();
 	}
 }
 }// namespace reflection
