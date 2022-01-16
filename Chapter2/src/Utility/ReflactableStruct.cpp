@@ -1,6 +1,6 @@
 #include <Utility/ReflactableStruct.h>
 #include <string_view>
-namespace reflection {
+namespace rtti {
 static thread_local Struct* curStruct = nullptr;
 size_t VarTypeData::GetSize() const {
 	return dimension * 4;
@@ -92,4 +92,4 @@ void Struct::GetMeshLayout(uint slot, std::vector<D3D12_INPUT_ELEMENT_DESC>& res
 		offset += var.GetSize();
 	}
 }
-}// namespace reflection
+}// namespace rtti

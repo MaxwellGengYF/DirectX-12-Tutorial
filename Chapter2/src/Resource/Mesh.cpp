@@ -1,7 +1,7 @@
 #include <Resource/Mesh.h>
 Mesh::Mesh(
 	Device* device,
-	std::vector<reflection::Struct>&& vbStructs,
+	std::vector<rtti::Struct>&& vbStructs,
 	uint64 vertexCount)
 	: Resource(device),
 	  vertexCount(vertexCount),

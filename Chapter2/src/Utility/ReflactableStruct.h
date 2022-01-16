@@ -3,7 +3,7 @@
 #include <memory>
 #include <DirectXMath.h>
 #include <string>
-namespace reflection {
+namespace rtti {
 //Interpret a variable's type in structure
 struct VarTypeData {
 	enum class ScaleType : vbyte {
@@ -107,4 +107,4 @@ template<>
 struct Var<DirectX::XMINT4> : public VarType<DirectX::XMINT4> {
 	Var(char const* semantic) : VarType<DirectX::XMINT4>(VarTypeData{VarTypeData::ScaleType::Int, vbyte(4), uint(0), std::string(semantic)}) {}
 };
-}// namespace reflection
+}// namespace rtti

@@ -34,9 +34,9 @@ public:
 private:
 	static const uint32_t FrameCount = 2;
 
-	struct Vertex : public reflection::Struct {
-		reflection::Var<XMFLOAT3> position = "POSITION";
-		reflection::Var<XMFLOAT4> color = "COLOR";
+	struct Vertex : public rtti::Struct {
+		rtti::Var<XMFLOAT3> position = "POSITION";
+		rtti::Var<XMFLOAT4> color = "COLOR";
 	};
 	std::unique_ptr<Device> device;
 	// Pipeline objects.

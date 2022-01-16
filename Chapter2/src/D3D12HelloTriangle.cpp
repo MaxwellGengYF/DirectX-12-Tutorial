@@ -116,7 +116,7 @@ void D3D12HelloTriangle::LoadAssets() {
 			vertexData.size());
 		uploadBuffer->CopyData(0, vertexData);
 		// Generate mesh
-		std::vector<reflection::Struct> structs;
+		std::vector<rtti::Struct> structs;
 		structs.emplace_back(std::move(vertexSample));
 		triangleMesh = std::make_unique<Mesh>(
 			device.get(),
