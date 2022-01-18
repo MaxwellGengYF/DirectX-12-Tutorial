@@ -95,8 +95,8 @@ void D3D12HelloTriangle::LoadAssets() {
 	ThrowIfFailed(m_commandList->Reset(m_commandAllocator.Get(), nullptr));
 	std::unique_ptr<UploadBuffer> uploadBuffer;
 	{
-		Vertex vertexSample;
-		
+		// Create a vertex sample
+		static Vertex vertexSample;
 		std::vector<vbyte> vertexData(vertexSample.structSize * 3);
 		vbyte* vertexDataPtr = vertexData.data();
 		// Vertex 0
@@ -116,11 +116,11 @@ void D3D12HelloTriangle::LoadAssets() {
 			vertexData.size());
 		uploadBuffer->CopyData(0, vertexData);
 		// Generate mesh
-		std::vector<rtti::Struct> structs;
-		structs.emplace_back(std::move(vertexSample));
+		std::vector<rtti::Struct const*> structs;
+		structs.emplace_back(&vertexSample);
 		triangleMesh = std::make_unique<Mesh>(
 			device.get(),
-			std::move(structs),
+			structs,
 			3);
 		// Copy uploadBuffer to mesh
 		m_commandList->CopyBufferRegion(

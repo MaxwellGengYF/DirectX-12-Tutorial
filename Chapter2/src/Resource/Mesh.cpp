@@ -1,16 +1,16 @@
 #include <Resource/Mesh.h>
 Mesh::Mesh(
 	Device* device,
-	std::vector<rtti::Struct>&& vbStructs,
+	std::span<rtti::Struct const*> vbStructs,
 	uint64 vertexCount)
 	: Resource(device),
 	  vertexCount(vertexCount),
-	  vertexStructs(std::move(vbStructs)) {
+	  vertexStructs(vbStructs) {
 	vertexBuffers.reserve(vertexStructs.size());
 	uint slotCount = 0;
 	for (auto&& i : vertexStructs) {
-		vertexBuffers.emplace_back(device, i.structSize * vertexCount);
-		i.GetMeshLayout(slotCount, layout);
+		vertexBuffers.emplace_back(device, i->structSize * vertexCount);
+		i->GetMeshLayout(slotCount, layout);
 		++slotCount;
 	}
 }
