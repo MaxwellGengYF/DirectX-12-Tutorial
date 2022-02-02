@@ -1,0 +1,205 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="Build">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\Component\Camera.h" />
+    <ClInclude Include="src\D3D12HelloTriangle.h" />
+    <ClInclude Include="src\d3dx12.h" />
+    <ClInclude Include="src\DXMath\Common.h" />
+    <ClInclude Include="src\DXMath\DXMath.h" />
+    <ClInclude Include="src\DXMath\DXMathConfig.h" />
+    <ClInclude Include="src\DXMath\MathHelper.h" />
+    <ClInclude Include="src\DXMath\Matrix3.h" />
+    <ClInclude Include="src\DXMath\Matrix4.h" />
+    <ClInclude Include="src\DXMath\Quaternion.h" />
+    <ClInclude Include="src\DXMath\Scalar.h" />
+    <ClInclude Include="src\DXMath\Swizzle.h" />
+    <ClInclude Include="src\DXMath\Vector.h" />
+    <ClInclude Include="src\DXRuntime\Device.h" />
+    <ClInclude Include="src\DXSample.h" />
+    <ClInclude Include="src\DXSampleHelper.h" />
+    <ClInclude Include="src\Metalib.h" />
+    <ClInclude Include="src\Resource\Buffer.h" />
+    <ClInclude Include="src\Resource\BufferView.h" />
+    <ClInclude Include="src\Resource\DefaultBuffer.h" />
+    <ClInclude Include="src\Resource\DescriptorHeap.h" />
+    <ClInclude Include="src\Resource\DescriptorHeapView.h" />
+    <ClInclude Include="src\Resource\Mesh.h" />
+    <ClInclude Include="src\Resource\ReadbackBuffer.h" />
+    <ClInclude Include="src\Resource\Resource.h" />
+    <ClInclude Include="src\Resource\UploadBuffer.h" />
+    <ClInclude Include="src\Shader\GlobalSamplers.h" />
+    <ClInclude Include="src\Shader\Shader.h" />
+    <ClInclude Include="src\Shader\ShaderVariableType.h" />
+    <ClInclude Include="src\stdafx.h" />
+    <ClInclude Include="src\Utility\ReflactableStruct.h" />
+    <ClInclude Include="src\Win32Application.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\Component\Camera.cpp" />
+    <ClCompile Include="src\D3D12HelloTriangle.cpp" />
+    <ClCompile Include="src\DXMath\DXMath.cpp" />
+    <ClCompile Include="src\DXMath\MathHelper.cpp" />
+    <ClCompile Include="src\DXRuntime\Device.cpp" />
+    <ClCompile Include="src\DXSample.cpp" />
+    <ClCompile Include="src\Main.cpp" />
+    <ClCompile Include="src\Resource\Buffer.cpp" />
+    <ClCompile Include="src\Resource\DefaultBuffer.cpp" />
+    <ClCompile Include="src\Resource\DescriptorHeap.cpp" />
+    <ClCompile Include="src\Resource\Mesh.cpp" />
+    <ClCompile Include="src\Resource\ReadbackBuffer.cpp" />
+    <ClCompile Include="src\Resource\UploadBuffer.cpp" />
+    <ClCompile Include="src\Shader\GlobalSamplers.cpp" />
+    <ClCompile Include="src\Shader\Shader.cpp" />
+    <ClCompile Include="src\Utility\ReflactableStruct.cpp" />
+    <ClCompile Include="src\Win32Application.cpp" />
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>16.0</VCProjectVersion>
+    <Keyword>Win32Proj</Keyword>
+    <ProjectGuid>{8c7cf7c3-7386-478f-8022-496c4599dcbb}</ProjectGuid>
+    <RootNamespace>DX12_SimpleBox</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>ClangCL</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+    <EnableUnitySupport>false</EnableUnitySupport>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>ClangCL</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+    <EnableUnitySupport>false</EnableUnitySupport>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
+    <Import Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
+    <Import Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <LinkIncremental>true</LinkIncremental>
+    <OutDir>./</OutDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <LinkIncremental>false</LinkIncremental>
+    <OutDir>./</OutDir>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>TurnOffAllWarnings</WarningLevel>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>_DEBUG;_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS;UNICODE;NOMINMAX;_XM_NO_INTRINSICS_;</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <Optimization>Disabled</Optimization>
+      <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
+      <IntrinsicFunctions>false</IntrinsicFunctions>
+      <FavorSizeOrSpeed>Neither</FavorSizeOrSpeed>
+      <OmitFramePointers>false</OmitFramePointers>
+      <EnableFiberSafeOptimizations>false</EnableFiberSafeOptimizations>
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
+      <CallingConvention>Cdecl</CallingConvention>
+      <CompileAs>CompileAsCpp</CompileAs>
+      <WholeProgramOptimization>false</WholeProgramOptimization>
+      <MinFilesInUnityFile>8</MinFilesInUnityFile>
+      <LanguageStandard_C>stdc17</LanguageStandard_C>
+      <EnableModules>true</EnableModules>
+      <AdditionalIncludeDirectories>src;</AdditionalIncludeDirectories>
+      <UseStandardPreprocessor>true</UseStandardPreprocessor>
+      <ProgramDataBaseFileName>$(IntDir)vc_1.pdb</ProgramDataBaseFileName>
+      <OpenMPSupport>false</OpenMPSupport>
+      <EnableParallelCodeGeneration>false</EnableParallelCodeGeneration>
+      <ExceptionHandling>Sync</ExceptionHandling>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>Shell32.lib;D3D12.lib;DXGI.lib;User32.lib;D3DCompiler.lib;</AdditionalDependencies>
+    </Link>
+    <PreBuildEvent>
+      <Command>
+      </Command>
+    </PreBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>TurnOffAllWarnings</WarningLevel>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>false</SDLCheck>
+      <ConformanceMode>true</ConformanceMode>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <OmitFramePointers>true</OmitFramePointers>
+      <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
+      <EnableParallelCodeGeneration>false</EnableParallelCodeGeneration>
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
+      <CallingConvention>Cdecl</CallingConvention>
+      <MinFilesInUnityFile>8</MinFilesInUnityFile>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <IntelJCCErratum>false</IntelJCCErratum>
+      <CompileAs>CompileAsCpp</CompileAs>
+      <FloatingPointModel>Precise</FloatingPointModel>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <PreprocessorDefinitions>NDEBUG;_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS;UNICODE;NOMINMAX;_XM_NO_INTRINSICS_;</PreprocessorDefinitions>
+      <BasicRuntimeChecks>Default</BasicRuntimeChecks>
+      <SmallerTypeCheck>false</SmallerTypeCheck>
+      <MinimalRebuild>false</MinimalRebuild>
+      <Optimization>MaxSpeed</Optimization>
+      <WholeProgramOptimization>true</WholeProgramOptimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <LanguageStandard_C>stdc17</LanguageStandard_C>
+      <EnableModules>false</EnableModules>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <AdditionalIncludeDirectories>src;</AdditionalIncludeDirectories>
+      <UseStandardPreprocessor>true</UseStandardPreprocessor>
+      <DisableLanguageExtensions>false</DisableLanguageExtensions>
+      <ProgramDataBaseFileName>$(IntDir)vc_1.pdb</ProgramDataBaseFileName>
+      <OpenMPSupport>false</OpenMPSupport>
+      <StringPooling>true</StringPooling>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
+      <AdditionalDependencies>Shell32.lib;D3D12.lib;DXGI.lib;User32.lib;D3DCompiler.lib;</AdditionalDependencies>
+      <LinkTimeCodeGeneration>UseFastLinkTimeCodeGeneration</LinkTimeCodeGeneration>
+    </Link>
+    <PreBuildEvent>
+      <Command>
+      </Command>
+    </PreBuildEvent>
+  </ItemDefinitionGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

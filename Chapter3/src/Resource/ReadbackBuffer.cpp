@@ -1,7 +1,7 @@
 
 #include <Resource/ReadbackBuffer.h>
 #include <DXSampleHelper.h>
-namespace toolhub::directx {
+
 ReadbackBuffer::ReadbackBuffer(
 	Device* device,
 	uint64 byteSize)
@@ -31,4 +31,3 @@ void ReadbackBuffer::CopyData(
 	resource->Unmap(0, nullptr);
 }
 
-}// namespace toolhub::directx
