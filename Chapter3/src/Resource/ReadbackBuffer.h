@@ -21,4 +21,5 @@ public:
 	}
 	ReadbackBuffer(ReadbackBuffer&&) = default;
 	ReadbackBuffer(ReadbackBuffer const&) = delete;
+	void DelayDispose(FrameResource* frameRes) const override;
 };

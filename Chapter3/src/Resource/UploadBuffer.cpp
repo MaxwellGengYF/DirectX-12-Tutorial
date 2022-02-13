@@ -1,7 +1,7 @@
 
 #include <Resource/UploadBuffer.h>
 #include <DXSampleHelper.h>
-
+#include <DXRuntime/FrameResource.h>
 UploadBuffer::UploadBuffer(
 	Device* device,
 	uint64 byteSize)
@@ -29,3 +29,6 @@ void UploadBuffer::CopyData(uint64 offset, std::span<vbyte const> data) const {
 	resource->Unmap(0, &range);
 }
 
+void UploadBuffer::DelayDispose(FrameResource* frameRes) const {
+	frameRes->AddDelayDisposeResource(resource);
+}

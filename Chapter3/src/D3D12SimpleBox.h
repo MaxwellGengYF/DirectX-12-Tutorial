@@ -23,16 +23,21 @@ using namespace DirectX;
 // referenced by the GPU.
 // An example of this can be found in the class method: OnDestroy().
 using Microsoft::WRL::ComPtr;
-class D3D12HelloTriangle : public DXSample {
+class FrameResource;
+class CommandListHandle;
+class D3D12SimpleBox : public DXSample {
 public:
-	D3D12HelloTriangle(uint32_t width, uint32_t height, std::wstring name);
+	D3D12SimpleBox(uint32_t width, uint32_t height, std::wstring name);
+	D3D12SimpleBox(D3D12SimpleBox const&) = delete;
+	D3D12SimpleBox(D3D12SimpleBox&&) = delete;
 	void OnInit() override;
 	void OnUpdate() override;
 	void OnRender() override;
 	void OnDestroy() override;
+	~D3D12SimpleBox();
 
 private:
-	static const uint32_t FrameCount = 2;
+	static const uint32_t FrameCount = 3;
 
 	struct Vertex : public rtti::Struct {
 		rtti::Var<XMFLOAT3> position = "POSITION";
@@ -44,24 +49,21 @@ private:
 	CD3DX12_RECT m_scissorRect;
 	ComPtr<IDXGISwapChain3> m_swapChain;
 	ComPtr<ID3D12Resource> m_renderTargets[FrameCount];
-	ComPtr<ID3D12CommandAllocator> m_commandAllocator;
 	ComPtr<ID3D12CommandQueue> m_commandQueue;
 	ComPtr<ID3D12RootSignature> m_rootSignature;
 	ComPtr<ID3D12DescriptorHeap> m_rtvHeap;
 	ComPtr<ID3D12PipelineState> m_pipelineState;
-	ComPtr<ID3D12GraphicsCommandList> m_commandList;
 	uint32_t m_rtvDescriptorSize;
+	std::unique_ptr<FrameResource> frameResources[FrameCount];
 
 	// App resources.
 	std::unique_ptr<Mesh> triangleMesh;
 	// Synchronization objects.
-	uint32_t m_frameIndex;
-	HANDLE m_fenceEvent;
+	uint32_t m_backBufferIndex;
 	ComPtr<ID3D12Fence> m_fence;
 	uint64_t m_fenceValue;
 
 	void LoadPipeline();
 	void LoadAssets();
-	void PopulateCommandList();
-	void WaitForPreviousFrame();
+	void PopulateCommandList(CommandListHandle const& cmdListHandle, uint frameIndex) const;
 };

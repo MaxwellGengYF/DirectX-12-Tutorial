@@ -32,7 +32,7 @@ protected:
 public:
 	Shader(
 		std::span<std::pair<std::string, Property> const> properties,
-		ID3D12Device* device);
+		Device* device);
 	Shader(
 		std::span<std::pair<std::string, Property> const> properties,
 		ComPtr<ID3D12RootSignature>&& rootSig);

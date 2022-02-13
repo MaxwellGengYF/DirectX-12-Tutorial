@@ -22,4 +22,5 @@ public:
 
 	DefaultBuffer(DefaultBuffer&&) = default;
 	DefaultBuffer(DefaultBuffer const&) = delete;
+	void DelayDispose(FrameResource* frameRes) const override;
 };

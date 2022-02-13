@@ -20,5 +20,6 @@ public:
 	}
 	UploadBuffer(UploadBuffer&&) = default;
 	UploadBuffer(UploadBuffer const&) = delete;
+	void DelayDispose(FrameResource* frameRes) const override;
 };
 

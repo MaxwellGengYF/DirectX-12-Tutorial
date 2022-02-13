@@ -20,7 +20,7 @@
 #endif
 
 #include <windows.h>
-
+#include <stdint.h>
 #include <d3d12.h>
 #include <dxgi.h>
 #include <dxgi1_6.h>

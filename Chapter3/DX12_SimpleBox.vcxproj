@@ -11,7 +11,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Component\Camera.h" />
-    <ClInclude Include="src\D3D12HelloTriangle.h" />
+    <ClInclude Include="src\D3D12SimpleBox.h" />
     <ClInclude Include="src\d3dx12.h" />
     <ClInclude Include="src\DXMath\Common.h" />
     <ClInclude Include="src\DXMath\DXMath.h" />
@@ -23,7 +23,9 @@
     <ClInclude Include="src\DXMath\Scalar.h" />
     <ClInclude Include="src\DXMath\Swizzle.h" />
     <ClInclude Include="src\DXMath\Vector.h" />
+    <ClInclude Include="src\DXRuntime\CommandListHandle.h" />
     <ClInclude Include="src\DXRuntime\Device.h" />
+    <ClInclude Include="src\DXRuntime\FrameResource.h" />
     <ClInclude Include="src\DXSample.h" />
     <ClInclude Include="src\DXSampleHelper.h" />
     <ClInclude Include="src\Metalib.h" />
@@ -37,18 +39,23 @@
     <ClInclude Include="src\Resource\Resource.h" />
     <ClInclude Include="src\Resource\UploadBuffer.h" />
     <ClInclude Include="src\Shader\GlobalSamplers.h" />
+    <ClInclude Include="src\Shader\PSOManager.h" />
+    <ClInclude Include="src\Shader\RasterShader.h" />
     <ClInclude Include="src\Shader\Shader.h" />
     <ClInclude Include="src\Shader\ShaderVariableType.h" />
     <ClInclude Include="src\stdafx.h" />
+    <ClInclude Include="src\Utility\Hash.h" />
     <ClInclude Include="src\Utility\ReflactableStruct.h" />
     <ClInclude Include="src\Win32Application.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Component\Camera.cpp" />
-    <ClCompile Include="src\D3D12HelloTriangle.cpp" />
+    <ClCompile Include="src\D3D12SimpleBox.cpp" />
     <ClCompile Include="src\DXMath\DXMath.cpp" />
     <ClCompile Include="src\DXMath\MathHelper.cpp" />
+    <ClCompile Include="src\DXRuntime\CommandListHandle.cpp" />
     <ClCompile Include="src\DXRuntime\Device.cpp" />
+    <ClCompile Include="src\DXRuntime\FrameResource.cpp" />
     <ClCompile Include="src\DXSample.cpp" />
     <ClCompile Include="src\Main.cpp" />
     <ClCompile Include="src\Resource\Buffer.cpp" />
@@ -58,8 +65,11 @@
     <ClCompile Include="src\Resource\ReadbackBuffer.cpp" />
     <ClCompile Include="src\Resource\UploadBuffer.cpp" />
     <ClCompile Include="src\Shader\GlobalSamplers.cpp" />
+    <ClCompile Include="src\Shader\PSOManager.cpp" />
+    <ClCompile Include="src\Shader\RasterShader.cpp" />
     <ClCompile Include="src\Shader\Shader.cpp" />
     <ClCompile Include="src\Utility\ReflactableStruct.cpp" />
+    <ClCompile Include="src\Utility\xxhash.cpp" />
     <ClCompile Include="src\Win32Application.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

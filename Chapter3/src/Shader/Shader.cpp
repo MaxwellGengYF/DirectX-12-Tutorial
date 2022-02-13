@@ -23,7 +23,7 @@ Shader::Shader(
 
 Shader::Shader(
 	std::span<std::pair<std::string, Property> const> prop,
-	ID3D12Device* device) {
+	Device* device) {
 	properties.reserve(prop.size());
 	std::vector<CD3DX12_ROOT_PARAMETER> allParameter;
 	std::vector<CD3DX12_DESCRIPTOR_RANGE> allRange;
@@ -81,7 +81,7 @@ Shader::Shader(
 	ThrowIfFailed(D3D12SerializeVersionedRootSignature(
 		&rootSigDesc,
 		serializedRootSig.GetAddressOf(), errorBlob.GetAddressOf()));
-	ThrowIfFailed(device->CreateRootSignature(
+	ThrowIfFailed(device->DxDevice()->CreateRootSignature(
 		0,
 		serializedRootSig->GetBufferPointer(),
 		serializedRootSig->GetBufferSize(),

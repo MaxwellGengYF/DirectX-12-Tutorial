@@ -1,6 +1,7 @@
 
 #include <Resource/DefaultBuffer.h>
 #include <DXSampleHelper.h>
+#include <DXRuntime/FrameResource.h>
 
 DefaultBuffer::DefaultBuffer(
 	Device* device,
@@ -20,4 +21,7 @@ DefaultBuffer::DefaultBuffer(
 		IID_PPV_ARGS(&resource)));
 }
 DefaultBuffer::~DefaultBuffer() {
+}
+void DefaultBuffer::DelayDispose(FrameResource* frameRes) const {
+	frameRes->AddDelayDisposeResource(resource);
 }

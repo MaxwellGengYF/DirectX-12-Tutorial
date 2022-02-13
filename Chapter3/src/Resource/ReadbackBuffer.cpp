@@ -1,6 +1,7 @@
 
 #include <Resource/ReadbackBuffer.h>
 #include <DXSampleHelper.h>
+#include <DXRuntime/FrameResource.h>
 
 ReadbackBuffer::ReadbackBuffer(
 	Device* device,
@@ -31,3 +32,6 @@ void ReadbackBuffer::CopyData(
 	resource->Unmap(0, nullptr);
 }
 
+void ReadbackBuffer::DelayDispose(FrameResource* frameRes) const {
+	frameRes->AddDelayDisposeResource(resource);
+}
