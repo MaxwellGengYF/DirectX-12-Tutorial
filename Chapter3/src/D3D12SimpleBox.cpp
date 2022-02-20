@@ -12,11 +12,12 @@
 #include "stdafx.h"
 #include "D3D12SimpleBox.h"
 #include <DXRuntime/FrameResource.h>
+#include <Component/Camera.h>
+#include <Resource/DefaultBuffer.h>
 D3D12SimpleBox::D3D12SimpleBox(uint32_t width, uint32_t height, std::wstring name)
 	: DXSample(width, height, name),
 	  m_viewport(0.0f, 0.0f, static_cast<float>(width), static_cast<float>(height)),
-	  m_scissorRect(0, 0, static_cast<LONG>(width), static_cast<LONG>(height)),
-	  m_rtvDescriptorSize(0) {
+	  m_scissorRect(0, 0, static_cast<LONG>(width), static_cast<LONG>(height)) {
 }
 void D3D12SimpleBox::OnInit() {
 	LoadPipeline();
@@ -69,17 +70,52 @@ void D3D12SimpleBox::LoadPipeline() {
 		ThrowIfFailed(device->DxDevice()->CreateDescriptorHeap(&rtvHeapDesc, IID_PPV_ARGS(&m_rtvHeap)));
 
 		m_rtvDescriptorSize = device->DxDevice()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+		D3D12_DESCRIPTOR_HEAP_DESC dsvHeapDesc = {};
+		dsvHeapDesc.NumDescriptors = FrameCount;
+		dsvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
+		dsvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+		ThrowIfFailed(device->DxDevice()->CreateDescriptorHeap(&dsvHeapDesc, IID_PPV_ARGS(&m_dsvHeap)));
+
+		m_dsvDescriptorSize = device->DxDevice()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
 	}
 
 	// Create frame resources.
 	{
 		CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(m_rtvHeap->GetCPUDescriptorHandleForHeapStart());
+		CD3DX12_CPU_DESCRIPTOR_HANDLE dsvHandle(m_dsvHeap->GetCPUDescriptorHandleForHeapStart());
 
 		// Create a RTV for each frame.
 		for (uint32_t n = 0; n < FrameCount; n++) {
 			ThrowIfFailed(m_swapChain->GetBuffer(n, IID_PPV_ARGS(&m_renderTargets[n])));
+			auto prop = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
+			D3D12_RESOURCE_DESC texDesc;
+			memset(&texDesc, 0, sizeof(D3D12_RESOURCE_DESC));
+			texDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+			texDesc.Alignment = 0;
+			texDesc.Width = m_scissorRect.right;
+			texDesc.Height = m_scissorRect.bottom;
+			texDesc.DepthOrArraySize = 1;
+			texDesc.MipLevels = 1;
+			texDesc.Format = DXGI_FORMAT_D32_FLOAT;
+			texDesc.SampleDesc.Count = 1;
+			texDesc.SampleDesc.Quality = 0;
+			texDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
+			texDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
+			D3D12_CLEAR_VALUE defaultClearValue;
+			defaultClearValue.Format = DXGI_FORMAT_D32_FLOAT;
+			defaultClearValue.DepthStencil.Depth = 1;
+			ThrowIfFailed(device->DxDevice()->CreateCommittedResource(
+				&prop,
+				D3D12_HEAP_FLAG_NONE,
+				&texDesc,
+				D3D12_RESOURCE_STATE_DEPTH_READ,
+				&defaultClearValue,
+				IID_PPV_ARGS(&m_depthTargets[n])));
+
 			device->DxDevice()->CreateRenderTargetView(m_renderTargets[n].Get(), nullptr, rtvHandle);
+			device->DxDevice()->CreateDepthStencilView(m_depthTargets[n].Get(), nullptr, dsvHandle);
 			rtvHandle.Offset(1, m_rtvDescriptorSize);
+			dsvHandle.Offset(1, m_dsvDescriptorSize);
 		}
 	}
 	// Init FrameResources
@@ -87,10 +123,66 @@ void D3D12SimpleBox::LoadPipeline() {
 		i = std::unique_ptr<FrameResource>(new FrameResource(device.get()));
 	}
 }
+static Vertex vertexSample;
+// Cube model generated from Unity3D
+static XMFLOAT3 vertices[] = {
+	XMFLOAT3(0.5, -0.5, 0.5),
+	XMFLOAT3(-0.5, -0.5, 0.5),
+	XMFLOAT3(0.5, 0.5, 0.5),
+	XMFLOAT3(-0.5, 0.5, 0.5),
+	XMFLOAT3(0.5, 0.5, -0.5),
+	XMFLOAT3(-0.5, 0.5, -0.5),
+	XMFLOAT3(0.5, -0.5, -0.5),
+	XMFLOAT3(-0.5, -0.5, -0.5),
+	XMFLOAT3(0.5, 0.5, 0.5),
+	XMFLOAT3(-0.5, 0.5, 0.5),
+	XMFLOAT3(0.5, 0.5, -0.5),
+	XMFLOAT3(-0.5, 0.5, -0.5),
+	XMFLOAT3(0.5, -0.5, -0.5),
+	XMFLOAT3(0.5, -0.5, 0.5),
+	XMFLOAT3(-0.5, -0.5, 0.5),
+	XMFLOAT3(-0.5, -0.5, -0.5),
+	XMFLOAT3(-0.5, -0.5, 0.5),
+	XMFLOAT3(-0.5, 0.5, 0.5),
+	XMFLOAT3(-0.5, 0.5, -0.5),
+	XMFLOAT3(-0.5, -0.5, -0.5),
+	XMFLOAT3(0.5, -0.5, -0.5),
+	XMFLOAT3(0.5, 0.5, -0.5),
+	XMFLOAT3(0.5, 0.5, 0.5),
+	XMFLOAT3(0.5, -0.5, 0.5)};
+static uint indices[] = {0, 2, 3, 0, 3, 1, 8, 4, 5, 8, 5, 9, 10, 6, 7, 10, 7, 11, 12, 13, 14, 12, 14, 15, 16, 17, 18, 16, 18, 19, 20, 21, 22, 20, 22, 23};
 
+static UploadBuffer* BuildCubeVertex(Device* device) {
+	constexpr size_t VERTEX_COUNT = array_count(vertices);
+	std::vector<vbyte> vertexData(vertexSample.structSize * VERTEX_COUNT);
+	vbyte* vertexDataPtr = vertexData.data();
+	for (size_t i = 0; i < VERTEX_COUNT; ++i) {
+		XMFLOAT3 vert = vertices[i];
+		vertexSample.position.Get(vertexDataPtr) = vert;
+		XMFLOAT4 color(
+			vert.x + 0.5f,
+			vert.y + 0.5f,
+			vert.z + 0.5f,
+			1);
+		vertexSample.color.Get(vertexDataPtr) = color;
+		vertexDataPtr += vertexSample.structSize;
+	}
+	UploadBuffer* vertBuffer = new UploadBuffer(
+		device,
+		vertexData.size());
+	vertBuffer->CopyData(0, vertexData);
+	return vertBuffer;
+}
+static UploadBuffer* BuildCubeIndices(Device* device) {
+	UploadBuffer* indBuffer = new UploadBuffer(
+		device,
+		array_count(indices) * sizeof(uint));
+	indBuffer->CopyData(0, {reinterpret_cast<vbyte const*>(indices), array_count(indices) * sizeof(uint)});
+	return indBuffer;
+}
 // Load the sample assets.
 void D3D12SimpleBox::LoadAssets() {
-	// Create triangle mesh
+	// Create mesh
 	ComPtr<ID3D12CommandAllocator> cmdAllocator;
 	ComPtr<ID3D12GraphicsCommandList> commandList;
 	ThrowIfFailed(
@@ -101,52 +193,64 @@ void D3D12SimpleBox::LoadAssets() {
 	ThrowIfFailed(commandList->Close());
 	ThrowIfFailed(cmdAllocator->Reset());
 	ThrowIfFailed(commandList->Reset(cmdAllocator.Get(), nullptr));
-	std::unique_ptr<UploadBuffer> uploadBuffer;
-	{
-		// Create a vertex sample
-		static Vertex vertexSample;
-		std::vector<vbyte> vertexData(vertexSample.structSize * 3);
-		vbyte* vertexDataPtr = vertexData.data();
-		// Vertex 0
-		vertexSample.position.Get(vertexDataPtr) = {0.0f, 0.25f * m_aspectRatio, 0.0f};
-		vertexSample.color.Get(vertexDataPtr) = {1.0f, 0.0f, 0.0f, 1.0f};
-		vertexDataPtr += vertexSample.structSize;
-		// Vertex 1
-		vertexSample.position.Get(vertexDataPtr) = {0.25f, -0.25f * m_aspectRatio, 0.0f};
-		vertexSample.color.Get(vertexDataPtr) = {0.0f, 1.0f, 0.0f, 1.0f};
-		vertexDataPtr += vertexSample.structSize;
-		// Vertex 2
-		vertexSample.position.Get(vertexDataPtr) = {-0.25f, -0.25f * m_aspectRatio, 0.0f};
-		vertexSample.color.Get(vertexDataPtr) = {0.0f, 0.0f, 1.0f, 1.0f};
-		// Create uploadBuffer
-		uploadBuffer = std::make_unique<UploadBuffer>(
-			device.get(),
-			vertexData.size());
-		uploadBuffer->CopyData(0, vertexData);
-		// Generate mesh
-		std::vector<rtti::Struct const*> structs;
-		structs.emplace_back(&vertexSample);
-		triangleMesh = std::make_unique<Mesh>(
-			device.get(),
-			structs,
-			3);
-		// Copy uploadBuffer to mesh
-		commandList->CopyBufferRegion(
-			triangleMesh->VertexBuffers()[0].GetResource(),
-			0,
-			uploadBuffer->GetResource(),
-			0,
-			vertexData.size());
-	}
+	std::unique_ptr<UploadBuffer> vertexUpload(BuildCubeVertex(device.get()));
+	std::unique_ptr<UploadBuffer> indexUpload(BuildCubeIndices(device.get()));
+	std::vector<rtti::Struct const*> structs;
+	structs.emplace_back(&vertexSample);
+	triangleMesh = std::make_unique<Mesh>(
+		device.get(),
+		structs,
+		array_count(vertices),
+		array_count(indices));
+	// Copy vertex buffer to mesh
+	commandList->CopyBufferRegion(
+		triangleMesh->VertexBuffers()[0].GetResource(),
+		0,
+		vertexUpload->GetResource(),
+		0,
+		vertexUpload->GetByteSize());
+	// Copy index buffer to mesh
+	commandList->CopyBufferRegion(
+		triangleMesh->IndexBuffer().GetResource(),
+		0,
+		indexUpload->GetResource(),
+		0,
+		indexUpload->GetByteSize());
+	// Build camera
+	UploadBuffer cbufferUpload(
+		device.get(),
+		CalculateConstantBufferByteSize(sizeof(XMFLOAT4X4)));
+	constBuffer = std::make_unique<DefaultBuffer>(
+		device.get(),
+		cbufferUpload.GetByteSize());
+
+	mainCamera = std::make_unique<Camera>();
+	mainCamera->Right = Math::Vector3(0.6877694, -1.622736E-05, 0.7259292);
+	mainCamera->Up = Math::Vector3(-0.3181089, 0.8988663, 0.301407);
+	mainCamera->Forward = Math::Vector3(-0.6525182, -0.438223, 0.6182076);
+	mainCamera->Position = Math::Vector3(2.232773, 1.501817, -1.883978);
+	mainCamera->SetAspect(static_cast<float>(m_scissorRect.right) / static_cast<float>(m_scissorRect.bottom));
+	mainCamera->UpdateViewMatrix();
+	mainCamera->UpdateProjectionMatrix();
+	Math::Matrix4 viewProjMatrix = mainCamera->Proj * mainCamera->View;
+	cbufferUpload.CopyData(
+		0, {reinterpret_cast<vbyte const*>(&viewProjMatrix), sizeof(Math::Matrix4)});
+	commandList->CopyBufferRegion(
+		constBuffer->GetResource(),
+		0,
+		cbufferUpload.GetResource(),
+		0,
+		cbufferUpload.GetByteSize());
 	ThrowIfFailed(commandList->Close());
 	// Execute CommandList
 	ID3D12CommandList* ppCommandLists[] = {commandList.Get()};
 	m_commandQueue->ExecuteCommandLists(array_count(ppCommandLists), ppCommandLists);
 	// Create an empty root signature.
 	{
+		CD3DX12_ROOT_PARAMETER cbufferParameter;
+		cbufferParameter.InitAsConstantBufferView(0);//register(b0);
 		CD3DX12_ROOT_SIGNATURE_DESC rootSignatureDesc;
-		rootSignatureDesc.Init(0, nullptr, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
-
+		rootSignatureDesc.Init(1, &cbufferParameter, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
 		ComPtr<ID3DBlob> signature;
 		ComPtr<ID3DBlob> error;
 		ThrowIfFailed(D3D12SerializeRootSignature(&rootSignatureDesc, D3D_ROOT_SIGNATURE_VERSION_1, &signature, &error));
@@ -178,12 +282,16 @@ void D3D12SimpleBox::LoadAssets() {
 		psoDesc.PS = CD3DX12_SHADER_BYTECODE(pixelShader.Get());
 		psoDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
 		psoDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
-		psoDesc.DepthStencilState.DepthEnable = FALSE;
-		psoDesc.DepthStencilState.StencilEnable = FALSE;
+		// ZWrite on, ZTest less
+		psoDesc.DepthStencilState.DepthEnable = true;
+		psoDesc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_LESS;
+		psoDesc.DepthStencilState.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ALL;
+		psoDesc.DepthStencilState.StencilEnable = false;
 		psoDesc.SampleMask = UINT_MAX;
 		psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
 		psoDesc.NumRenderTargets = 1;
 		psoDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
+		psoDesc.DSVFormat = DXGI_FORMAT_D32_FLOAT;
 		psoDesc.SampleDesc.Count = 1;
 		ThrowIfFailed(device->DxDevice()->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_pipelineState)));
 	}
@@ -250,22 +358,38 @@ void D3D12SimpleBox::PopulateCommandList(CommandListHandle const& cmdListHandle,
 
 	// Indicate that the back buffer will be used as a render target.
 	cmdList->ResourceBarrier(1, get_rvalue_ptr(CD3DX12_RESOURCE_BARRIER::Transition(m_renderTargets[frameIndex].Get(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET)));
+	cmdList->ResourceBarrier(1, get_rvalue_ptr(CD3DX12_RESOURCE_BARRIER::Transition(m_depthTargets[frameIndex].Get(), D3D12_RESOURCE_STATE_DEPTH_READ, D3D12_RESOURCE_STATE_DEPTH_WRITE)));
 
 	CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(m_rtvHeap->GetCPUDescriptorHandleForHeapStart(), frameIndex, m_rtvDescriptorSize);
-	cmdList->OMSetRenderTargets(1, &rtvHandle, FALSE, nullptr);
+	CD3DX12_CPU_DESCRIPTOR_HANDLE dsvHandle(m_dsvHeap->GetCPUDescriptorHandleForHeapStart(), frameIndex, m_dsvDescriptorSize);
+	cmdList->OMSetRenderTargets(1, &rtvHandle, FALSE, &dsvHandle);
 
 	// Record commands.
 	const float clearColor[] = {0.0f, 0.2f, 0.4f, 1.0f};
 	cmdList->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
+	cmdList->ClearDepthStencilView(dsvHandle, D3D12_CLEAR_FLAG_DEPTH, 1, 0, 0, nullptr);
 	cmdList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	std::vector<D3D12_VERTEX_BUFFER_VIEW> vertexBufferView;
 	triangleMesh->GetVertexBufferView(vertexBufferView);
+	//Set vertex & index buffer
 	cmdList->IASetVertexBuffers(0, vertexBufferView.size(), vertexBufferView.data());
+	D3D12_INDEX_BUFFER_VIEW indexBufferView = triangleMesh->GetIndexBufferView();
+	cmdList->IASetIndexBuffer(&indexBufferView);
 	cmdList->SetPipelineState(
 		m_pipelineState.Get());
-	cmdList->DrawInstanced(3, 1, 0, 0);
+
+	cmdList->SetGraphicsRootConstantBufferView(
+		0,
+		constBuffer->GetAddress());
+	cmdList->DrawIndexedInstanced(
+		array_count(indices),
+		1,
+		0,
+		0,
+		0);
 
 	// Indicate that the back buffer will now be used to present.
 	cmdList->ResourceBarrier(1, get_rvalue_ptr(CD3DX12_RESOURCE_BARRIER::Transition(m_renderTargets[frameIndex].Get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT)));
+	cmdList->ResourceBarrier(1, get_rvalue_ptr(CD3DX12_RESOURCE_BARRIER::Transition(m_depthTargets[frameIndex].Get(), D3D12_RESOURCE_STATE_DEPTH_WRITE, D3D12_RESOURCE_STATE_DEPTH_READ)));
 }
 D3D12SimpleBox::~D3D12SimpleBox() {}

@@ -15,6 +15,6 @@
 _Use_decl_annotations_
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
 {
-	D3D12SimpleBox sample(1280, 720, L"D3D12 Hello Triangle");
+	D3D12SimpleBox sample(1280, 720, L"D3D12 Simple Box");
     return Win32Application::Run(&sample, hInstance, nCmdShow);
 }
