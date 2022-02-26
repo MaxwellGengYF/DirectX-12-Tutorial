@@ -51,7 +51,7 @@ private:
 	CD3DX12_RECT m_scissorRect;
 	ComPtr<IDXGISwapChain3> m_swapChain;
 	ComPtr<ID3D12Resource> m_renderTargets[FrameCount];
-	ComPtr<ID3D12Resource> m_depthTargets[FrameCount];
+	ComPtr<ID3D12Resource> m_depthTarget;
 	ComPtr<ID3D12CommandQueue> m_commandQueue;
 	ComPtr<ID3D12RootSignature> m_rootSignature;
 	ComPtr<ID3D12DescriptorHeap> m_rtvHeap;

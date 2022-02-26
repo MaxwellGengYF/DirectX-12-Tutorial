@@ -71,52 +71,52 @@ void D3D12SimpleBox::LoadPipeline() {
 
 		m_rtvDescriptorSize = device->DxDevice()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
 		D3D12_DESCRIPTOR_HEAP_DESC dsvHeapDesc = {};
-		dsvHeapDesc.NumDescriptors = FrameCount;
+		dsvHeapDesc.NumDescriptors = 1;
 		dsvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
 		dsvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
 		ThrowIfFailed(device->DxDevice()->CreateDescriptorHeap(&dsvHeapDesc, IID_PPV_ARGS(&m_dsvHeap)));
 
 		m_dsvDescriptorSize = device->DxDevice()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
 	}
-
-	// Create frame resources.
+	// Create render target
 	{
 		CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(m_rtvHeap->GetCPUDescriptorHandleForHeapStart());
-		CD3DX12_CPU_DESCRIPTOR_HANDLE dsvHandle(m_dsvHeap->GetCPUDescriptorHandleForHeapStart());
-
 		// Create a RTV for each frame.
 		for (uint32_t n = 0; n < FrameCount; n++) {
 			ThrowIfFailed(m_swapChain->GetBuffer(n, IID_PPV_ARGS(&m_renderTargets[n])));
-			auto prop = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
-			D3D12_RESOURCE_DESC texDesc;
-			memset(&texDesc, 0, sizeof(D3D12_RESOURCE_DESC));
-			texDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
-			texDesc.Alignment = 0;
-			texDesc.Width = m_scissorRect.right;
-			texDesc.Height = m_scissorRect.bottom;
-			texDesc.DepthOrArraySize = 1;
-			texDesc.MipLevels = 1;
-			texDesc.Format = DXGI_FORMAT_D32_FLOAT;
-			texDesc.SampleDesc.Count = 1;
-			texDesc.SampleDesc.Quality = 0;
-			texDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
-			texDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
-			D3D12_CLEAR_VALUE defaultClearValue;
-			defaultClearValue.Format = DXGI_FORMAT_D32_FLOAT;
-			defaultClearValue.DepthStencil.Depth = 1;
-			ThrowIfFailed(device->DxDevice()->CreateCommittedResource(
-				&prop,
-				D3D12_HEAP_FLAG_NONE,
-				&texDesc,
-				D3D12_RESOURCE_STATE_DEPTH_READ,
-				&defaultClearValue,
-				IID_PPV_ARGS(&m_depthTargets[n])));
 
 			device->DxDevice()->CreateRenderTargetView(m_renderTargets[n].Get(), nullptr, rtvHandle);
-			device->DxDevice()->CreateDepthStencilView(m_depthTargets[n].Get(), nullptr, dsvHandle);
 			rtvHandle.Offset(1, m_rtvDescriptorSize);
-			dsvHandle.Offset(1, m_dsvDescriptorSize);
 		}
+	}
+	// Create depth buffer
+	{
+		CD3DX12_CPU_DESCRIPTOR_HANDLE dsvHandle(m_dsvHeap->GetCPUDescriptorHandleForHeapStart());
+		auto prop = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
+		D3D12_RESOURCE_DESC texDesc;
+		memset(&texDesc, 0, sizeof(D3D12_RESOURCE_DESC));
+		texDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+		texDesc.Alignment = 0;
+		texDesc.Width = m_scissorRect.right;
+		texDesc.Height = m_scissorRect.bottom;
+		texDesc.DepthOrArraySize = 1;
+		texDesc.MipLevels = 1;
+		texDesc.Format = DXGI_FORMAT_D32_FLOAT;
+		texDesc.SampleDesc.Count = 1;
+		texDesc.SampleDesc.Quality = 0;
+		texDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
+		texDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
+		D3D12_CLEAR_VALUE defaultClearValue;
+		defaultClearValue.Format = DXGI_FORMAT_D32_FLOAT;
+		defaultClearValue.DepthStencil.Depth = 1;
+		ThrowIfFailed(device->DxDevice()->CreateCommittedResource(
+			&prop,
+			D3D12_HEAP_FLAG_NONE,
+			&texDesc,
+			D3D12_RESOURCE_STATE_DEPTH_READ,
+			&defaultClearValue,
+			IID_PPV_ARGS(&m_depthTarget)));
+		device->DxDevice()->CreateDepthStencilView(m_depthTarget.Get(), nullptr, dsvHandle);
 	}
 	// Init FrameResources
 	for (auto&& i : frameResources) {
@@ -320,12 +320,12 @@ void D3D12SimpleBox::OnRender() {
 	// Record all the commands we need to render the scene into the command list.
 	auto curFrame = m_backBufferIndex;
 	auto nextFrame = (curFrame + 1) % FrameCount;
-	auto lastFrame = (nextFrame + 1) % FrameCount;
 	// Execute and Present
 	frameResources[curFrame]->Execute(
 		m_commandQueue.Get(),
 		m_fence.Get(),
 		m_fenceValue);
+	// Present the frame.
 	ThrowIfFailed(m_swapChain->Present(0, 0));
 	m_backBufferIndex = (m_backBufferIndex + 1) % FrameCount;
 	// Signal Frame
@@ -333,12 +333,9 @@ void D3D12SimpleBox::OnRender() {
 		m_commandQueue.Get(),
 		m_fence.Get());
 	// Populate next frame
-	PopulateCommandList(frameResources[nextFrame]->Command(), nextFrame);
-	// Sync last frame
-	frameResources[lastFrame]->Sync(
+	frameResources[nextFrame]->Sync(
 		m_fence.Get());
-
-	// Present the frame.
+	PopulateCommandList(frameResources[nextFrame]->Command(), nextFrame);
 }
 
 void D3D12SimpleBox::OnDestroy() {
@@ -358,10 +355,10 @@ void D3D12SimpleBox::PopulateCommandList(CommandListHandle const& cmdListHandle,
 
 	// Indicate that the back buffer will be used as a render target.
 	cmdList->ResourceBarrier(1, get_rvalue_ptr(CD3DX12_RESOURCE_BARRIER::Transition(m_renderTargets[frameIndex].Get(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET)));
-	cmdList->ResourceBarrier(1, get_rvalue_ptr(CD3DX12_RESOURCE_BARRIER::Transition(m_depthTargets[frameIndex].Get(), D3D12_RESOURCE_STATE_DEPTH_READ, D3D12_RESOURCE_STATE_DEPTH_WRITE)));
+	cmdList->ResourceBarrier(1, get_rvalue_ptr(CD3DX12_RESOURCE_BARRIER::Transition(m_depthTarget.Get(), D3D12_RESOURCE_STATE_DEPTH_READ, D3D12_RESOURCE_STATE_DEPTH_WRITE)));
 
 	CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(m_rtvHeap->GetCPUDescriptorHandleForHeapStart(), frameIndex, m_rtvDescriptorSize);
-	CD3DX12_CPU_DESCRIPTOR_HANDLE dsvHandle(m_dsvHeap->GetCPUDescriptorHandleForHeapStart(), frameIndex, m_dsvDescriptorSize);
+	CD3DX12_CPU_DESCRIPTOR_HANDLE dsvHandle(m_dsvHeap->GetCPUDescriptorHandleForHeapStart(), 0, m_dsvDescriptorSize);
 	cmdList->OMSetRenderTargets(1, &rtvHandle, FALSE, &dsvHandle);
 
 	// Record commands.
@@ -390,6 +387,6 @@ void D3D12SimpleBox::PopulateCommandList(CommandListHandle const& cmdListHandle,
 
 	// Indicate that the back buffer will now be used to present.
 	cmdList->ResourceBarrier(1, get_rvalue_ptr(CD3DX12_RESOURCE_BARRIER::Transition(m_renderTargets[frameIndex].Get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT)));
-	cmdList->ResourceBarrier(1, get_rvalue_ptr(CD3DX12_RESOURCE_BARRIER::Transition(m_depthTargets[frameIndex].Get(), D3D12_RESOURCE_STATE_DEPTH_WRITE, D3D12_RESOURCE_STATE_DEPTH_READ)));
+	cmdList->ResourceBarrier(1, get_rvalue_ptr(CD3DX12_RESOURCE_BARRIER::Transition(m_depthTarget.Get(), D3D12_RESOURCE_STATE_DEPTH_WRITE, D3D12_RESOURCE_STATE_DEPTH_READ)));
 }
 D3D12SimpleBox::~D3D12SimpleBox() {}
