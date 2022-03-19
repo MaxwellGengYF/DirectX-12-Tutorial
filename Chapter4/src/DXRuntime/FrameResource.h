@@ -33,6 +33,7 @@ class FrameResource {
 	StackAllocator rbAlloc;
 	StackAllocator dbAlloc;
 	Device* device;
+	Mesh* mesh;
 	std::vector<D3D12_VERTEX_BUFFER_VIEW> vertexBufferView;
 	BufferView GetTempBuffer(size_t size, size_t align, StackAllocator& alloc);
 
@@ -71,4 +72,5 @@ public:
 		Mesh* mesh,
 		DXGI_FORMAT colorFormat,
 		DXGI_FORMAT depthFormat);
+	void Draw();
 };

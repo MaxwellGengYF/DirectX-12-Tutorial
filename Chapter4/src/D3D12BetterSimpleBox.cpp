@@ -340,12 +340,7 @@ void D3D12BetterSimpleBox::PopulateCommandList(FrameResource& frameRes, uint fra
 	cmdList->SetGraphicsRootConstantBufferView(
 		0,
 		constBuffer.buffer->GetAddress() + constBuffer.offset);
-	cmdList->DrawIndexedInstanced(
-		array_count(indices),
-		1,
-		0,
-		0,
-		0);
+	frameRes.Draw();
 	stateTracker.RestoreState(cmdList);
 }
 D3D12BetterSimpleBox::~D3D12BetterSimpleBox() {}

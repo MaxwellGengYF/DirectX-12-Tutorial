@@ -171,4 +171,13 @@ void FrameResource::BindPipeline(
 	D3D12_INDEX_BUFFER_VIEW indexBufferView = mesh->GetIndexBufferView();
 	cmdList->IASetIndexBuffer(&indexBufferView);
 	cmdList->SetGraphicsRootSignature(shader->RootSig());
+	this->mesh = mesh;
+}
+void FrameResource::Draw() {
+	cmdList->DrawIndexedInstanced(
+		mesh->IndexBuffer().GetByteSize() / 4,
+		1,
+		0,
+		0,
+		0);
 }
