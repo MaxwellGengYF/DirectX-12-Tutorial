@@ -88,34 +88,21 @@ void D3D12BetterSimpleBox::LoadPipeline() {
 
 		// Create a RTV for each frame.
 		for (uint32_t n = 0; n < FrameCount; n++) {
-			ThrowIfFailed(m_swapChain->GetBuffer(n, IID_PPV_ARGS(&m_renderTargets[n])));
-			auto prop = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
-			D3D12_RESOURCE_DESC texDesc;
-			memset(&texDesc, 0, sizeof(D3D12_RESOURCE_DESC));
-			texDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
-			texDesc.Alignment = 0;
-			texDesc.Width = m_scissorRect.right;
-			texDesc.Height = m_scissorRect.bottom;
-			texDesc.DepthOrArraySize = 1;
-			texDesc.MipLevels = 1;
-			texDesc.Format = DXGI_FORMAT_D32_FLOAT;
-			texDesc.SampleDesc.Count = 1;
-			texDesc.SampleDesc.Quality = 0;
-			texDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
-			texDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
-			D3D12_CLEAR_VALUE defaultClearValue;
-			defaultClearValue.Format = DXGI_FORMAT_D32_FLOAT;
-			defaultClearValue.DepthStencil.Depth = 1;
-			ThrowIfFailed(device->DxDevice()->CreateCommittedResource(
-				&prop,
-				D3D12_HEAP_FLAG_NONE,
-				&texDesc,
-				D3D12_RESOURCE_STATE_DEPTH_READ,
-				&defaultClearValue,
-				IID_PPV_ARGS(&m_depthTargets[n])));
+			m_renderTargets[n] = std::unique_ptr<Texture>(new Texture(device.get(), m_swapChain.Get(), n));
+			m_depthTargets[n] = std::unique_ptr<Texture>(
+				new Texture(
+					device.get(),
+					m_scissorRect.right,
+					m_scissorRect.bottom,
+					DXGI_FORMAT_D32_FLOAT,
+					TextureDimension::Tex2D,
+					1,
+					1,
+					Texture::TextureUsage::DepthStencil,
+					D3D12_RESOURCE_STATE_DEPTH_READ));
 
-			device->DxDevice()->CreateRenderTargetView(m_renderTargets[n].Get(), nullptr, rtvHandle);
-			device->DxDevice()->CreateDepthStencilView(m_depthTargets[n].Get(), nullptr, dsvHandle);
+			device->DxDevice()->CreateRenderTargetView(m_renderTargets[n]->GetResource(), nullptr, rtvHandle);
+			device->DxDevice()->CreateDepthStencilView(m_depthTargets[n]->GetResource(), nullptr, dsvHandle);
 			rtvHandle.Offset(1, m_rtvDescriptorSize);
 			dsvHandle.Offset(1, m_dsvDescriptorSize);
 		}
@@ -219,13 +206,7 @@ void D3D12BetterSimpleBox::LoadAssets() {
 		0,
 		indexUpload->GetByteSize());
 	// Build camera
-	UploadBuffer cbufferUpload(
-		device.get(),
-		CalculateConstantBufferByteSize(sizeof(XMFLOAT4X4)));
-	constBuffer = std::make_unique<DefaultBuffer>(
-		device.get(),
-		cbufferUpload.GetByteSize());
-
+	
 	mainCamera = std::make_unique<Camera>();
 	mainCamera->Right = Math::Vector3(0.6877694, -1.622736E-05, 0.7259292);
 	mainCamera->Up = Math::Vector3(-0.3181089, 0.8988663, 0.301407);
@@ -234,15 +215,6 @@ void D3D12BetterSimpleBox::LoadAssets() {
 	mainCamera->SetAspect(static_cast<float>(m_scissorRect.right) / static_cast<float>(m_scissorRect.bottom));
 	mainCamera->UpdateViewMatrix();
 	mainCamera->UpdateProjectionMatrix();
-	Math::Matrix4 viewProjMatrix = mainCamera->Proj * mainCamera->View;
-	cbufferUpload.CopyData(
-		0, {reinterpret_cast<vbyte const*>(&viewProjMatrix), sizeof(Math::Matrix4)});
-	commandList->CopyBufferRegion(
-		constBuffer->GetResource(),
-		0,
-		cbufferUpload.GetResource(),
-		0,
-		cbufferUpload.GetByteSize());
 	ThrowIfFailed(commandList->Close());
 	// Execute CommandList
 	ID3D12CommandList* ppCommandLists[] = {commandList.Get()};
@@ -283,16 +255,6 @@ void D3D12BetterSimpleBox::LoadAssets() {
 		depthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_LESS;
 		depthStencilState.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ALL;
 		depthStencilState.StencilEnable = false;
-		// Generate PSO
-		DXGI_FORMAT colorFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
-		DXGI_FORMAT depthFormat = DXGI_FORMAT_D32_FLOAT;
-		m_pipelineState = psoManager->GetPipelineState(
-			triangleMesh->Layout(),
-			colorShader.get(),
-			{&colorFormat, 1},
-			depthFormat);
-		colorShader->vsShader = nullptr;
-		colorShader->psShader = nullptr;
 	}
 
 	// Create synchronization objects and wait until assets have been uploaded to the GPU.
@@ -332,7 +294,7 @@ void D3D12BetterSimpleBox::OnRender() {
 		m_commandQueue.Get(),
 		m_fence.Get());
 	// Populate next frame
-	PopulateCommandList(frameResources[nextFrame]->Command(), nextFrame);
+	PopulateCommandList(*frameResources[nextFrame], nextFrame);
 	// Sync last frame
 	frameResources[lastFrame]->Sync(
 		m_fence.Get());
@@ -347,48 +309,43 @@ void D3D12BetterSimpleBox::OnDestroy() {
 	}
 }
 
-void D3D12BetterSimpleBox::PopulateCommandList(CommandListHandle const& cmdListHandle, uint frameIndex) const {
-
+void D3D12BetterSimpleBox::PopulateCommandList(FrameResource& frameRes, uint frameIndex) {
+	auto cmdListHandle = frameRes.Command();
 	auto cmdList = cmdListHandle.CmdList();
 	// Set necessary state.
-	cmdList->SetGraphicsRootSignature(colorShader->RootSig());
-	cmdList->RSSetViewports(1, &m_viewport);
-	cmdList->RSSetScissorRects(1, &m_scissorRect);
 
-	// Indicate that the back buffer will be used as a render target.
-	cmdList->ResourceBarrier(1, get_rvalue_ptr(CD3DX12_RESOURCE_BARRIER::Transition(m_renderTargets[frameIndex].Get(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET)));
-	cmdList->ResourceBarrier(1, get_rvalue_ptr(CD3DX12_RESOURCE_BARRIER::Transition(m_depthTargets[frameIndex].Get(), D3D12_RESOURCE_STATE_DEPTH_READ, D3D12_RESOURCE_STATE_DEPTH_WRITE)));
-
+	stateTracker.RecordState(m_renderTargets[frameIndex].get(), D3D12_RESOURCE_STATE_RENDER_TARGET);
+	stateTracker.RecordState(m_depthTargets[frameIndex].get(), D3D12_RESOURCE_STATE_DEPTH_WRITE);
+	stateTracker.UpdateState(cmdList);
 	CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(m_rtvHeap->GetCPUDescriptorHandleForHeapStart(), frameIndex, m_rtvDescriptorSize);
 	CD3DX12_CPU_DESCRIPTOR_HANDLE dsvHandle(m_dsvHeap->GetCPUDescriptorHandleForHeapStart(), frameIndex, m_dsvDescriptorSize);
-	cmdList->OMSetRenderTargets(1, &rtvHandle, FALSE, &dsvHandle);
-
+	frameRes.SetRenderTarget(
+		m_renderTargets[frameIndex].get(),
+		&rtvHandle,
+		&dsvHandle);
+	frameRes.ClearRTV(rtvHandle);
+	frameRes.ClearDSV(dsvHandle);
 	// Record commands.
-	const float clearColor[] = {0.0f, 0.2f, 0.4f, 1.0f};
-	cmdList->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
-	cmdList->ClearDepthStencilView(dsvHandle, D3D12_CLEAR_FLAG_DEPTH, 1, 0, 0, nullptr);
-	cmdList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-	std::vector<D3D12_VERTEX_BUFFER_VIEW> vertexBufferView;
-	triangleMesh->GetVertexBufferView(vertexBufferView);
-	//Set vertex & index buffer
-	cmdList->IASetVertexBuffers(0, vertexBufferView.size(), vertexBufferView.data());
-	D3D12_INDEX_BUFFER_VIEW indexBufferView = triangleMesh->GetIndexBufferView();
-	cmdList->IASetIndexBuffer(&indexBufferView);
-	cmdList->SetPipelineState(
-		m_pipelineState);
+	DXGI_FORMAT colorFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
+	DXGI_FORMAT depthFormat = DXGI_FORMAT_D32_FLOAT;
 
+	frameRes.BindPipeline(
+		colorShader.get(),
+		psoManager.get(),
+		triangleMesh.get(),
+		colorFormat,
+		depthFormat);
+	Math::Matrix4 viewProjMatrix = mainCamera->Proj * mainCamera->View;
+	auto constBuffer = frameRes.AllocateConstBuffer({reinterpret_cast<uint8_t const*>(&viewProjMatrix), sizeof(viewProjMatrix)});
 	cmdList->SetGraphicsRootConstantBufferView(
 		0,
-		constBuffer->GetAddress());
+		constBuffer.buffer->GetAddress() + constBuffer.offset);
 	cmdList->DrawIndexedInstanced(
 		array_count(indices),
 		1,
 		0,
 		0,
 		0);
-
-	// Indicate that the back buffer will now be used to present.
-	cmdList->ResourceBarrier(1, get_rvalue_ptr(CD3DX12_RESOURCE_BARRIER::Transition(m_renderTargets[frameIndex].Get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT)));
-	cmdList->ResourceBarrier(1, get_rvalue_ptr(CD3DX12_RESOURCE_BARRIER::Transition(m_depthTargets[frameIndex].Get(), D3D12_RESOURCE_STATE_DEPTH_WRITE, D3D12_RESOURCE_STATE_DEPTH_READ)));
+	stateTracker.RestoreState(cmdList);
 }
 D3D12BetterSimpleBox::~D3D12BetterSimpleBox() {}

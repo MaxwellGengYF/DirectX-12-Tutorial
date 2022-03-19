@@ -15,6 +15,8 @@
 #include <Resource/Mesh.h>
 #include <DXRuntime/Device.h>
 #include <Resource/UploadBuffer.h>
+#include <Resource/Texture.h>
+#include <DXRuntime/ResourceStateTracker.h>
 using namespace DirectX;
 // Note that while ComPtr is used to manage the lifetime of resources on the CPU,
 // it has no understanding of the lifetime of resources on the GPU. Apps must account
@@ -51,26 +53,24 @@ private:
 	CD3DX12_VIEWPORT m_viewport;
 	CD3DX12_RECT m_scissorRect;
 	ComPtr<IDXGISwapChain3> m_swapChain;
-	ComPtr<ID3D12Resource> m_renderTargets[FrameCount];
-	ComPtr<ID3D12Resource> m_depthTargets[FrameCount];
+	std::unique_ptr<Texture> m_renderTargets[FrameCount];
+	std::unique_ptr<Texture> m_depthTargets[FrameCount];
 	ComPtr<ID3D12CommandQueue> m_commandQueue;
 	ComPtr<ID3D12DescriptorHeap> m_rtvHeap;
 	ComPtr<ID3D12DescriptorHeap> m_dsvHeap;
-	ID3D12PipelineState* m_pipelineState;
 	std::unique_ptr<PSOManager> psoManager;
 	std::unique_ptr<RasterShader> colorShader;
 	uint32_t m_rtvDescriptorSize;
 	uint32_t m_dsvDescriptorSize;
 	std::unique_ptr<FrameResource> frameResources[FrameCount];
-	
+	ResourceStateTracker stateTracker;
 	// App resources.
 	std::unique_ptr<Mesh> triangleMesh;
-	std::unique_ptr<DefaultBuffer> constBuffer;
 	// Synchronization objects.
 	uint32_t m_backBufferIndex;
 	ComPtr<ID3D12Fence> m_fence;
 	uint64_t m_fenceValue;
 	void LoadPipeline();
 	void LoadAssets();
-	void PopulateCommandList(CommandListHandle const& cmdListHandle, uint frameIndex) const;
+	void PopulateCommandList(FrameResource& frameRes, uint frameIndex);
 };
