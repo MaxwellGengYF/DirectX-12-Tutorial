@@ -329,18 +329,17 @@ void D3D12BetterSimpleBox::PopulateCommandList(FrameResource& frameRes, uint fra
 	DXGI_FORMAT colorFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
 	DXGI_FORMAT depthFormat = DXGI_FORMAT_D32_FLOAT;
 
-	frameRes.BindPipeline(
+	Math::Matrix4 viewProjMatrix = mainCamera->Proj * mainCamera->View;
+	auto constBuffer = frameRes.AllocateConstBuffer({reinterpret_cast<uint8_t const*>(&viewProjMatrix), sizeof(viewProjMatrix)});
+	bindProperties.clear();
+	bindProperties.emplace_back("_Global", constBuffer);
+	frameRes.DrawMesh(
 		colorShader.get(),
 		psoManager.get(),
 		triangleMesh.get(),
 		colorFormat,
-		depthFormat);
-	Math::Matrix4 viewProjMatrix = mainCamera->Proj * mainCamera->View;
-	auto constBuffer = frameRes.AllocateConstBuffer({reinterpret_cast<uint8_t const*>(&viewProjMatrix), sizeof(viewProjMatrix)});
-	cmdList->SetGraphicsRootConstantBufferView(
-		0,
-		constBuffer.buffer->GetAddress() + constBuffer.offset);
-	frameRes.Draw();
+		depthFormat,
+		bindProperties);
 	stateTracker.RestoreState(cmdList);
 }
 D3D12BetterSimpleBox::~D3D12BetterSimpleBox() {}

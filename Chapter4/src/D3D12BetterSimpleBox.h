@@ -17,6 +17,7 @@
 #include <Resource/UploadBuffer.h>
 #include <Resource/Texture.h>
 #include <DXRuntime/ResourceStateTracker.h>
+#include <DXRuntime/BindProperty.h>
 using namespace DirectX;
 // Note that while ComPtr is used to manage the lifetime of resources on the CPU,
 // it has no understanding of the lifetime of resources on the GPU. Apps must account
@@ -70,6 +71,7 @@ private:
 	uint32_t m_backBufferIndex;
 	ComPtr<ID3D12Fence> m_fence;
 	uint64_t m_fenceValue;
+	std::vector<BindProperty> bindProperties;
 	void LoadPipeline();
 	void LoadAssets();
 	void PopulateCommandList(FrameResource& frameRes, uint frameIndex);

@@ -152,12 +152,13 @@ void FrameResource::ClearDSV(CD3DX12_CPU_DESCRIPTOR_HANDLE const& dsv) {
 	cmdList->ClearDepthStencilView(dsv, D3D12_CLEAR_FLAG_DEPTH, Texture::CLEAR_DEPTH, Texture::CLEAR_STENCIL, 0, nullptr);
 }
 
-void FrameResource::BindPipeline(
+void FrameResource::DrawMesh(
 	RasterShader const* shader,
 	PSOManager* psoManager,
 	Mesh* mesh,
 	DXGI_FORMAT colorFormat,
-	DXGI_FORMAT depthFormat) {
+	DXGI_FORMAT depthFormat,
+	std::span<BindProperty> properties) {
 	cmdList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	cmdList->SetPipelineState(
 		psoManager->GetPipelineState(
@@ -170,10 +171,35 @@ void FrameResource::BindPipeline(
 	cmdList->IASetVertexBuffers(0, vertexBufferView.size(), vertexBufferView.data());
 	D3D12_INDEX_BUFFER_VIEW indexBufferView = mesh->GetIndexBufferView();
 	cmdList->IASetIndexBuffer(&indexBufferView);
+	struct PropertyBinder {
+		ID3D12GraphicsCommandList* cmdList;
+		Shader const* shader;
+		std::string const* name;
+		void operator()(BufferView const& bfView) const {
+			if (!shader->SetResource(
+					*name,
+					cmdList,
+					bfView)) {
+				throw "Invalid shader binding";
+			}
+		}
+		void operator()(DescriptorHeapView const& descView) const {
+			if (!shader->SetResource(
+					*name,
+					cmdList,
+					descView)) {
+				throw "Invalid shader binding";
+			}
+		}
+	};
 	cmdList->SetGraphicsRootSignature(shader->RootSig());
-	this->mesh = mesh;
-}
-void FrameResource::Draw() {
+	PropertyBinder binder{
+		.cmdList = cmdList.Get(),
+		.shader = shader};
+	for (auto&& i : properties) {
+		binder.name = &i.name;
+		std::visit(binder, i.prop);
+	}
 	cmdList->DrawIndexedInstanced(
 		mesh->IndexBuffer().GetByteSize() / 4,
 		1,

@@ -23,6 +23,7 @@
     <ClInclude Include="src\DXMath\Scalar.h" />
     <ClInclude Include="src\DXMath\Swizzle.h" />
     <ClInclude Include="src\DXMath\Vector.h" />
+    <ClInclude Include="src\DXRuntime\BindProperty.h" />
     <ClInclude Include="src\DXRuntime\CommandListHandle.h" />
     <ClInclude Include="src\DXRuntime\Device.h" />
     <ClInclude Include="src\DXRuntime\FrameResource.h" />
@@ -47,6 +48,7 @@
     <ClInclude Include="src\Shader\ShaderVariableType.h" />
     <ClInclude Include="src\stdafx.h" />
     <ClInclude Include="src\Utility\Hash.h" />
+    <ClInclude Include="src\Utility\Iterator.h" />
     <ClInclude Include="src\Utility\ReflactableStruct.h" />
     <ClInclude Include="src\Utility\StackAllocator.h" />
     <ClInclude Include="src\Win32Application.h" />

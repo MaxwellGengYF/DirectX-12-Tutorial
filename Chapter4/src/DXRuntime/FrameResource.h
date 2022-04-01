@@ -6,6 +6,8 @@
 #include <Resource/DefaultBuffer.h>
 #include <Utility/StackAllocator.h>
 #include <functional>
+#include <Resource/DescriptorHeapView.h>
+#include <DXRuntime/BindProperty.h>
 using Microsoft::WRL::ComPtr;
 class Texture;
 class Mesh;
@@ -33,9 +35,9 @@ class FrameResource {
 	StackAllocator rbAlloc;
 	StackAllocator dbAlloc;
 	Device* device;
-	Mesh* mesh;
 	std::vector<D3D12_VERTEX_BUFFER_VIEW> vertexBufferView;
 	BufferView GetTempBuffer(size_t size, size_t align, StackAllocator& alloc);
+
 
 public:
 	CommandListHandle Command();
@@ -66,11 +68,11 @@ public:
 		CD3DX12_CPU_DESCRIPTOR_HANDLE const* dsvHandle = nullptr);
 	void ClearRTV(CD3DX12_CPU_DESCRIPTOR_HANDLE const& rtv);
 	void ClearDSV(CD3DX12_CPU_DESCRIPTOR_HANDLE const& dsv);
-	void BindPipeline(
+	void DrawMesh(
 		RasterShader const* shader,
 		PSOManager* psoManager,
 		Mesh* mesh,
 		DXGI_FORMAT colorFormat,
-		DXGI_FORMAT depthFormat);
-	void Draw();
+		DXGI_FORMAT depthFormat,
+		std::span<BindProperty> properties);
 };

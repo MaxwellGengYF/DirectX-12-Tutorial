@@ -1,3 +1,4 @@
+#pragma once
 #include <stdafx.h>
 class DescriptorHeap;
 struct DescriptorHeapView {
