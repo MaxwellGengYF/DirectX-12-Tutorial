@@ -1,4 +1,4 @@
-<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="Build">
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="Build">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|x64">
       <Configuration>Debug</Configuration>
@@ -48,7 +48,6 @@
     <ClInclude Include="src\Shader\ShaderVariableType.h" />
     <ClInclude Include="src\stdafx.h" />
     <ClInclude Include="src\Utility\Hash.h" />
-    <ClInclude Include="src\Utility\Iterator.h" />
     <ClInclude Include="src\Utility\ReflactableStruct.h" />
     <ClInclude Include="src\Utility\StackAllocator.h" />
     <ClInclude Include="src\Win32Application.h" />

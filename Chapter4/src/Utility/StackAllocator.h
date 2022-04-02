@@ -1,12 +1,12 @@
 #pragma once
 #include <stdafx.h>
-class StackAllocatorVisitor {
+class IStackAllocVisitor {
 public:
 	virtual uint64 Allocate(uint64 size) = 0;
 	virtual void DeAllocate(uint64 handle) = 0;
 };
 class StackAllocator {
-	StackAllocatorVisitor* visitor;
+	IStackAllocVisitor* visitor;
 	uint64 capacity;
 	struct Buffer {
 		uint64 handle;
@@ -18,7 +18,7 @@ class StackAllocator {
 public:
 	StackAllocator(
 		uint64 initCapacity,
-		StackAllocatorVisitor* visitor);
+		IStackAllocVisitor* visitor);
 	~StackAllocator();
 	struct Chunk {
 		uint64 handle;

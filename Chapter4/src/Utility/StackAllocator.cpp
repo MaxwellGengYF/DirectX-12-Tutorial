@@ -3,7 +3,7 @@
 #include <optional>
 StackAllocator::StackAllocator(
 	uint64 initCapacity,
-	StackAllocatorVisitor* visitor)
+	IStackAllocVisitor* visitor)
 	: capacity(initCapacity),
 	  visitor(visitor) {
 }

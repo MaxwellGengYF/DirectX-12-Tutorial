@@ -22,7 +22,7 @@ class FrameResource {
 	bool populated = false;
 	static constexpr size_t TEMP_SIZE = 1024ull * 1024ull;
 	template<typename T>
-	class Visitor : public StackAllocatorVisitor {
+	class Visitor : public IStackAllocVisitor {
 	public:
 		FrameResource* self;
 		uint64 Allocate(uint64 size) override;
