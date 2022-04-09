@@ -1,5 +1,4 @@
 #pragma once
-#include <DXMath/DXMathConfig.h>
 #include <DirectXMath.h>
 #include <intrin.h>
 
