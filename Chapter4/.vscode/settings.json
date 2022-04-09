@@ -1,0 +1,14 @@
+{
+    "xmake.additionalConfigArguments": "--cc=clang-cl --cxx=clang-cl",
+    "C_Cpp.codeAnalysis.runAutomatically": false,
+    "C_Cpp.intelliSenseEngine": "Disabled",
+    "C_Cpp.formatting": "Disabled",
+    "C_Cpp.autoAddFileAssociations": false,
+    "C_Cpp.autocompleteAddParentheses": false,
+    "C_Cpp.autocomplete": "Disabled",
+    "clangd.arguments": [
+      "--compile-commands-dir=.vscode",
+      "-j=13",
+      "--pch-storage=memory",
+    ]
+}
