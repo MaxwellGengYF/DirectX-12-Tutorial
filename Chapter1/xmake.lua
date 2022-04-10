@@ -1,9 +1,7 @@
 add_rules("mode.release", "mode.debug")
 function Execute(map, func)
     if map ~= nil then
-        for i, v in ipairs(map) do
-            func(v)
-        end
+        func(map)
     end
 end
 function SetException(enableException)
