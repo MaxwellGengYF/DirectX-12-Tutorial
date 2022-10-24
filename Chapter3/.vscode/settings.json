@@ -1,5 +1,4 @@
 {
-  "xmake.additionalConfigArguments": "--cc=clang-cl --cxx=clang-cl",
   "C_Cpp.codeAnalysis.runAutomatically": false,
   "C_Cpp.intelliSenseEngine": "Disabled",
   "C_Cpp.formatting": "Disabled",

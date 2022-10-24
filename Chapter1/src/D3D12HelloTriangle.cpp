@@ -282,7 +282,7 @@ void D3D12HelloTriangle::PopulateCommandList() {
 	m_commandList->ResourceBarrier(1, get_rvalue_ptr(CD3DX12_RESOURCE_BARRIER::Transition(m_renderTargets[m_frameIndex].Get(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET)));
 
 	CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(m_rtvHeap->GetCPUDescriptorHandleForHeapStart(), m_frameIndex, m_rtvDescriptorSize);
-	m_commandList->OMSetRenderTargets(1, &rtvHandle, FALSE, nullptr);
+	m_commandList->OMSetRenderTargets(1, &rtvHandle, TRUE, nullptr);
 
 	// Record commands.
 	const float clearColor[] = {0.0f, 0.2f, 0.4f, 1.0f};
